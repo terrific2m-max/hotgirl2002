@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Caroline's To-Dos</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --hot: #ff2d95;
+    --bubblegum: #ff8ad1;
+    --baby: #ffd1ec;
+    --lilac: #c9a7ff;
+    --cyan: #7df9ff;
+    --lemon: #fff46b;
+    --ink: #3a0a2e;
+    --white: #fff7fc;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    min-height: 100vh;
+    font-family: 'VT323', 'Courier New', monospace;
+    color: var(--ink);
+    background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,.08) 0 2px, transparent 2px 4px),
+      linear-gradient(135deg, var(--hot) 0%, var(--bubblegum) 35%, var(--lilac) 70%, var(--cyan) 100%);
+    background-attachment: fixed;
+    padding: 24px 16px 60px;
+    image-rendering: pixelated;
+    overflow-x: hidden;
+  }
+
+  /* floating pixel sparkles */
+  .sparkle {
+    position: fixed; pointer-events: none; z-index: 0;
+    font-family: 'Press Start 2P', monospace; color: var(--white);
+    text-shadow: 2px 2px 0 var(--hot);
+    animation: twinkle 1.6s steps(2, end) infinite;
+    opacity: .9;
+  }
+  @keyframes twinkle { 0%,100% { opacity: 1; transform: scale(1);} 50% { opacity: .2; transform: scale(.6);} }
+
+  .wrap { position: relative; z-index: 1; max-width: 720px; margin: 0 auto; }
+
+  .marquee {
+    background: var(--ink); color: var(--lemon);
+    font-family: 'Press Start 2P', monospace; font-size: 10px;
+    padding: 8px 0; border: 4px solid var(--white);
+    box-shadow: 6px 6px 0 var(--hot);
+    overflow: hidden; white-space: nowrap; margin-bottom: 20px;
+  }
+  .marquee span { display: inline-block; padding-left: 100%; animation: scroll 14s linear infinite; }
+  @keyframes scroll { to { transform: translateX(-100%);} }
+
+  .window {
+    background: var(--white);
+    border: 4px solid var(--ink);
+    box-shadow: 8px 8px 0 var(--ink), 16px 16px 0 var(--hot);
+    margin-bottom: 24px;
+  }
+  .titlebar {
+    background: linear-gradient(90deg, var(--hot), var(--lilac));
+    border-bottom: 4px solid var(--ink);
+    padding: 8px 12px; display: flex; align-items: center; gap: 8px;
+    font-family: 'Press Start 2P', monospace; font-size: 9px; color: var(--white);
+    text-shadow: 2px 2px 0 var(--ink);
+  }
+  .titlebar .dots { margin-left: auto; display: flex; gap: 6px; }
+  .titlebar .dots i { width: 12px; height: 12px; background: var(--lemon); border: 2px solid var(--ink); display: block; }
+  .titlebar .dots i:nth-child(2){ background: var(--cyan);} .titlebar .dots i:nth-child(3){ background: var(--bubblegum);}
+
+  h1 {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(14px, 3.4vw, 24px);
+    line-height: 1.7; text-align: center; margin: 0;
+    padding: 28px 18px;
+    color: var(--hot);
+    text-shadow: 3px 3px 0 var(--ink), 6px 6px 0 var(--cyan);
+    animation: pulse 1.2s steps(2, end) infinite;
+  }
+  @keyframes pulse { 50% { color: var(--lilac);} }
+  .sub {
+    text-align: center; font-size: 22px; padding: 0 18px 20px; margin: 0;
+    color: var(--ink);
+  }
+  .sub b { color: var(--hot); }
+
+  .hud {
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: 'Press Start 2P', monospace; font-size: 9px;
+    padding: 10px 14px; background: var(--baby); border-bottom: 4px solid var(--ink);
+  }
+  .bar { flex: 1; margin: 0 12px; height: 16px; border: 3px solid var(--ink); background: var(--white); position: relative; }
+  .bar i { position: absolute; inset: 0; width: 0%; background: repeating-linear-gradient(90deg, var(--hot) 0 8px, var(--bubblegum) 8px 16px); transition: width .3s steps(6); }
+
+  ul { list-style: none; margin: 0; padding: 14px; }
+  li {
+    display: grid; grid-template-columns: 36px 1fr; gap: 12px; align-items: start;
+    padding: 14px 12px; margin-bottom: 12px;
+    background: var(--baby); border: 4px solid var(--ink);
+    box-shadow: 4px 4px 0 var(--lilac);
+    cursor: pointer; transition: transform .1s steps(2);
+    user-select: none;
+  }
+  li:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 var(--lilac); }
+  li.important { background: var(--lemon); box-shadow: 4px 4px 0 var(--hot); }
+  li.done { background: #e9dbf5; opacity: .75; }
+  li.done .task { text-decoration: line-through; text-decoration-thickness: 4px; text-decoration-color: var(--hot); }
+
+  .box {
+    width: 32px; height: 32px; border: 4px solid var(--ink); background: var(--white);
+    display: grid; place-items: center; font-family: 'Press Start 2P', monospace; font-size: 14px; color: var(--hot);
+  }
+  li.done .box::after { content: "✓"; }
+
+  .task { font-size: 26px; line-height: 1.1; }
+  .meta { font-size: 18px; color: #7a2a60; margin-top: 4px; display: block; }
+  .tag {
+    display: inline-block; font-family: 'Press Start 2P', monospace; font-size: 8px;
+    background: var(--hot); color: var(--white); padding: 5px 7px; margin-top: 8px; margin-right: 6px;
+    border: 3px solid var(--ink); box-shadow: 2px 2px 0 var(--ink);
+  }
+  .tag.cyan { background: var(--cyan); color: var(--ink); }
+  .tag.lilac { background: var(--lilac); color: var(--ink); }
+
+  /* bedazzled photo wall */
+  .photos {
+    display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-end; gap: 22px;
+    padding: 26px 16px 10px;
+    background:
+      radial-gradient(circle at 10% 20%, rgba(255,255,255,.35) 0 3px, transparent 4px),
+      radial-gradient(circle at 80% 70%, rgba(255,255,255,.35) 0 3px, transparent 4px),
+      radial-gradient(circle at 50% 90%, rgba(255,255,255,.35) 0 2px, transparent 3px),
+      repeating-linear-gradient(45deg, var(--baby) 0 12px, var(--white) 12px 24px);
+    border-bottom: 4px solid var(--ink);
+  }
+  .polaroid {
+    position: relative; background: var(--white); padding: 10px 10px 34px;
+    border: 4px solid var(--ink);
+    box-shadow: 0 0 0 4px var(--hot), 0 0 0 8px var(--white), 0 0 0 12px var(--cyan), 10px 14px 0 12px var(--ink);
+    transform: rotate(-4deg); transition: transform .15s steps(3);
+  }
+  .polaroid:nth-child(2) { transform: rotate(5deg); }
+  .polaroid:hover { transform: rotate(0) scale(1.04); z-index: 2; }
+  .polaroid .pic {
+    position: relative; border: 3px solid var(--ink); overflow: hidden; background: var(--ink);
+  }
+  .polaroid img {
+    display: block; width: min(300px, 70vw); height: auto;
+    image-rendering: pixelated;
+    filter: saturate(1.9) contrast(1.25) brightness(1.08) hue-rotate(-12deg) sepia(.25);
+    animation: glitch 6s steps(1, end) infinite;
+  }
+  @keyframes glitch {
+    0%, 94%, 100% { transform: none; filter: saturate(1.9) contrast(1.25) brightness(1.08) hue-rotate(-12deg) sepia(.25); }
+    95% { transform: translate(3px,-2px) skewX(2deg); filter: saturate(3) hue-rotate(60deg) contrast(1.4); }
+    96% { transform: translate(-3px,2px); filter: saturate(2) hue-rotate(-90deg) invert(.1); }
+    97% { transform: none; filter: saturate(1.9) contrast(1.25) brightness(1.08) hue-rotate(-12deg) sepia(.25); }
+  }
+  /* pink duotone wash */
+  .polaroid .pic::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 1;
+    background: linear-gradient(120deg, rgba(255,45,149,.35), rgba(201,167,255,.25) 45%, rgba(125,249,255,.35) 70%, rgba(255,244,107,.3));
+    mix-blend-mode: color;
+  }
+  /* CRT scanlines + pixel grid + vignette */
+  .polaroid .pic::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 1;
+    background:
+      repeating-linear-gradient(0deg, rgba(58,10,46,.28) 0 2px, transparent 2px 4px),
+      repeating-linear-gradient(90deg, rgba(255,255,255,.06) 0 1px, transparent 1px 3px),
+      radial-gradient(ellipse at center, transparent 55%, rgba(58,10,46,.55) 100%);
+    mix-blend-mode: multiply;
+  }
+  /* holo shimmer sweep */
+  .polaroid .shine {
+    position: absolute; inset: 0; pointer-events: none; z-index: 2;
+    background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,.55) 45%, rgba(125,249,255,.45) 50%, rgba(255,138,209,.5) 55%, transparent 70%);
+    background-size: 300% 100%;
+    animation: sweep 3.5s steps(14) infinite; mix-blend-mode: screen;
+  }
+  @keyframes sweep { 0% { background-position: 120% 0; } 100% { background-position: -120% 0; } }
+  /* glitter dots */
+  .polaroid .glitter {
+    position: absolute; inset: 0; pointer-events: none; z-index: 2;
+    background:
+      radial-gradient(circle at 12% 18%, #fff 0 2px, transparent 3px),
+      radial-gradient(circle at 78% 24%, #fff 0 2px, transparent 3px),
+      radial-gradient(circle at 30% 72%, #fff 0 1.5px, transparent 2.5px),
+      radial-gradient(circle at 88% 80%, #fff 0 2px, transparent 3px),
+      radial-gradient(circle at 55% 45%, #fff 0 1.5px, transparent 2.5px),
+      radial-gradient(circle at 65% 90%, #fff 0 2px, transparent 3px);
+    animation: twinkle .9s steps(2,end) infinite;
+  }
+  .polaroid .stamp {
+    position: absolute; top: 8px; right: 8px; z-index: 3;
+    font-family: 'Press Start 2P', monospace; font-size: 7px; color: var(--lemon);
+    background: rgba(58,10,46,.8); padding: 4px 5px; border: 2px solid var(--lemon);
+    animation: twinkle 1.4s steps(2,end) infinite;
+  }
+  .polaroid .cap {
+    position: absolute; left: 0; right: 0; bottom: 8px; text-align: center;
+    font-family: 'Press Start 2P', monospace; font-size: 8px; color: var(--hot);
+    text-shadow: 1px 1px 0 var(--ink);
+  }
+  .gem {
+    position: absolute; font-size: 22px; line-height: 1; z-index: 3;
+    animation: twinkle 1.1s steps(2,end) infinite;
+    filter: drop-shadow(2px 2px 0 var(--ink));
+  }
+  .gem.tl { top: -18px; left: -16px; }   .gem.tr { top: -18px; right: -16px; animation-delay: .3s; }
+  .gem.bl { bottom: -14px; left: -16px; animation-delay: .6s; } .gem.br { bottom: -14px; right: -16px; animation-delay: .9s; }
+  .gem.m  { top: 40%; left: -22px; font-size: 16px; animation-delay: .45s; }
+  .bling {
+    font-family: 'Press Start 2P', monospace; font-size: 9px; text-align: center; width: 100%;
+    color: var(--ink); background: var(--lemon); border: 4px solid var(--ink);
+    box-shadow: 4px 4px 0 var(--hot); padding: 10px; margin-top: 8px; line-height: 1.9;
+  }
+  .bling span { color: var(--hot); }
+
+  .footer {
+    text-align: center; font-family: 'Press Start 2P', monospace; font-size: 9px;
+    color: var(--white); text-shadow: 2px 2px 0 var(--ink); line-height: 2.2;
+  }
+  .win {
+    display: none; text-align: center; font-family: 'Press Start 2P', monospace; font-size: 12px;
+    padding: 18px; color: var(--hot); text-shadow: 2px 2px 0 var(--ink); line-height: 2;
+  }
+  .win.show { display: block; animation: pulse .6s steps(2,end) infinite; }
+</style>
+</head>
+<body>
+
+<div class="sparkle" style="top:8%;left:6%;font-size:18px">✦</div>
+<div class="sparkle" style="top:18%;right:8%;font-size:26px;animation-delay:.4s">★</div>
+<div class="sparkle" style="top:55%;left:4%;font-size:22px;animation-delay:.8s">✧</div>
+<div class="sparkle" style="top:70%;right:5%;font-size:18px;animation-delay:.2s">✦</div>
+<div class="sparkle" style="bottom:8%;left:12%;font-size:28px;animation-delay:1.1s">★</div>
+<div class="sparkle" style="top:40%;right:3%;font-size:14px;animation-delay:.6s">♡</div>
+<div class="sparkle" style="top:5%;left:48%;font-size:14px;animation-delay:1.3s">♡</div>
+
+<div class="wrap">
+
+  <div class="marquee"><span>★ ♡ PLAYER 1: CAROLINE ♡ ★ PRESS START TO SLAY ★ ♡ HOT GIRL LEVEL: 9999 ♡ ★ NO NOTES. ★ ♡ &nbsp;&nbsp;&nbsp;&nbsp;</span></div>
+
+  <div class="window">
+    <div class="titlebar">♡ TODO.EXE <div class="dots"><i></i><i></i><i></i></div></div>
+    <div class="photos">
+      <div class="polaroid">
+        <span class="gem tl">💎</span><span class="gem tr">💖</span><span class="gem bl">✨</span><span class="gem br">💎</span><span class="gem m">⭐</span>
+        <div class="pic"><span class="shine"></span><span class="glitter"></span><span class="stamp">● REC</span><img src="data:image/jpeg;base64,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" alt="Caroline snuggling her dog"></div>
+        <span class="cap">♡ GIRL + DOG = ICONIC ♡</span>
+      </div>
+      <div class="polaroid">
+        <span class="gem tl">💖</span><span class="gem tr">💎</span><span class="gem bl">⭐</span><span class="gem br">✨</span>
+        <div class="pic"><span class="shine"></span><span class="glitter"></span><span class="stamp">● REC</span><img src="data:image/jpeg;base64,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" alt="Caroline laughing in cowboy boots"></div>
+        <span class="cap">★ COWGIRL ERA ★</span>
+      </div>
+      <div class="bling">✧･ﾟ: *✧･ﾟ:* <span>MAIN CHARACTER</span> *:･ﾟ✧*:･ﾟ✧</div>
+    </div>
+    <h1>CAROLINE IS THE HOTTEST, SMARTEST GIRL EVER</h1>
+    <p class="sub">♡ ur daily quests, princess ♡ — tap a tile to <b>complete</b> it</p>
+
+    <div class="hud">
+      <span>XP</span>
+      <div class="bar"><i id="bar"></i></div>
+      <span id="count">0/5</span>
+    </div>
+
+    <ul id="list">
+      <li class="important">
+        <div class="box"></div>
+        <div>
+          <span class="task">EAT LUNCH</span>
+          <span class="meta">hot girls are fed girls. non-negotiable.</span>
+          <span class="tag">IMPORTANT!</span><span class="tag lilac">+50 HP</span>
+        </div>
+      </li>
+      <li class="important">
+        <div class="box"></div>
+        <div>
+          <span class="task">DRINK WATER</span>
+          <span class="meta">hydrate or diedrate. aim for a whole big bottle.</span>
+          <span class="tag">IMPORTANT!</span><span class="tag cyan">+GLOW</span>
+        </div>
+      </li>
+      <li>
+        <div class="box"></div>
+        <div>
+          <span class="task">CALL DOCTOR ABOUT INHALER</span>
+          <span class="meta">#hotgirlscan'tbreath — call during office hours, ask for a refill/rx sent to ur pharmacy.</span>
+          <span class="tag cyan">~10 MIN CALL</span><span class="tag lilac">HEALTH QUEST</span>
+        </div>
+      </li>
+      <li>
+        <div class="box"></div>
+        <div>
+          <span class="task">FOLLOW UP W/ APARTMENT TO RE-SIGN LEASE</span>
+          <span class="meta">please don't be slow af thanks! ♡ — email or call the leasing office, ask for the renewal doc + deadline.</span>
+          <span class="tag cyan">~15 MIN</span><span class="tag">DON'T BE SLOW</span>
+        </div>
+      </li>
+      <li>
+        <div class="box"></div>
+        <div>
+          <span class="task">LAUNDRY</span>
+          <span class="meta">⏱ total ≈ 2 hrs: wash 45 min → dry 60 min → fold &amp; put away 15 min. only ~20 min of that is actual effort, the rest is a built-in little treat break.</span>
+          <span class="tag cyan">~2 HRS TOTAL</span><span class="tag lilac">~20 MIN EFFORT</span>
+        </div>
+      </li>
+    </ul>
+
+    <div class="win" id="win">★ ALL QUESTS COMPLETE ★<br>SHE IS, IN FACT, THAT GIRL. ♡</div>
+  </div>
+
+  <div class="footer">♡ made w/ love for caroline ♡<br>© 2002 HOTGIRL SYSTEMS INC.</div>
+</div>
+
+<script>
+  const items = document.querySelectorAll('#list li');
+  const bar = document.getElementById('bar');
+  const count = document.getElementById('count');
+  const win = document.getElementById('win');
+  function update() {
+    const done = [...items].filter(li => li.classList.contains('done')).length;
+    count.textContent = done + '/' + items.length;
+    bar.style.width = (done / items.length * 100) + '%';
+    win.classList.toggle('show', done === items.length);
+  }
+  items.forEach(li => li.addEventListener('click', () => { li.classList.toggle('done'); update(); }));
+  update();
+</script>
+</body>
+</html>
